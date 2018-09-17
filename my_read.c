@@ -72,5 +72,9 @@ int main(int argc, const char *argv[]){
 			print_hex(info->nai.abtUid,info->nai.szUidLen);
 		}
 	}
+
+	nfc_close(pnd);
+	nfc_exit(context);
+	exit(EXIT_SUCCESS);
  
 }
