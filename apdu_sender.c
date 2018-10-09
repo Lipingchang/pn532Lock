@@ -14,7 +14,7 @@ int main(int argc, const char *argv[] ){
 	nfc_target nt;
 	nfc_context *context;
 
-
+	cout.set
 	initDevice(&context,&pnd,&nt);
 
 

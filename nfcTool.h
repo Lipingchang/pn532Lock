@@ -21,7 +21,7 @@ int CardTransmit(nfc_device *pnd,const uint8_t *sendapdu,const size_t sendapdule
 	size_t szPos;
 	printf("=> ");
 	for( szPos = 0; szPos<sendapdulen; szPos++ ){		// capdu -> send data
-		printf("%02x ", sendapdu[szPos]);				
+		printf("%02x ", sendapdu[szPos]);	
 	}
 	printf("\n");
 	res = nfc_initiator_transceive_bytes(pnd,sendapdu,sendapdulen,recapdu,*recapdulen,timeout);
