@@ -1,5 +1,8 @@
+#ifndef _NFC_TOOL_H_
+#define _NFC_TOOL_H_ 1
+
 char const *mynfc_device_name = "pn532_uart:/dev/ttyUSB0";
-uint8_t const *Lock_ID = ( uint8_t* ) "\x08\x01\x01\x01\x01\x01\x01\x08"; // 8 byte Lock ID
+uint8_t const *Lock_ID = ( uint8_t* ) "\x88\x01\x02\x03\x04\x05\x06\x88"; // 8 byte Lock ID
 
 const uint8_t start_auth_head =  			0x90;
 const uint8_t Access_Request_Head =         0x02;
@@ -16,8 +19,11 @@ const uint8_t Receive_Fuck_Head =           0x99;
 const uint8_t Receive_OK_Head   =           0x66;
 const uint8_t  AID_Head  =                 0x00;
 
+const uint8_t Master_Mode = 0x01;
+const uint8_t Guest_Mode = 0x02;
+
 int CardTransmit(nfc_device *pnd,const uint8_t *sendapdu,const size_t sendapdulen,  uint8_t *recapdu,const size_t *recapdulen){
-	int res = 0,timeout=500; 
+	int res = 0,timeout=1000; 
 	size_t szPos;
 	printf("=> ");
 	for( szPos = 0; szPos<sendapdulen; szPos++ ){		// capdu -> send data
@@ -108,3 +114,15 @@ void ByebyeDevice(nfc_context **context_addr,nfc_device **pnd_addr ){
 	nfc_exit(*context_addr);
 	//exit(EXIT_SUCCESS);
 }
+int getPwdFromAccessRequest(uint8_t* input,int input_len,char *pwd ){
+	// pwd must big enough to contain the pwd!!
+	int count = 0;
+	for( int i = 3; i<input_len;i++ ){
+		pwd[count++] = input[i];
+	}
+	pwd[count] = '\0';
+	printf("find pwd:<%s> len:<%d>\n", pwd,count);
+	return count;
+}
+
+#endif

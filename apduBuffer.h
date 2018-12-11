@@ -1,8 +1,11 @@
+#ifndef _APDU_BUFFER_H
+#define _APDU_BUFFER_H 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <nfc/nfc.h>
- 
+
 #define APDU_MAX_LEN 256
  
 typedef  struct apdubufferStruct{
@@ -53,7 +56,7 @@ bool insertApduBufferBytes( apduBuffer *buffer,const uint8_t *byte_array,int arr
 	}
 
 	*len = *len + array_len;
-	return false;
+	return true;
 }
 bool appendApduBufferByte(apduBuffer *buffer,  const uint8_t newone){
 	if( buffer->length+1 > APDU_MAX_LEN ){
@@ -61,7 +64,8 @@ bool appendApduBufferByte(apduBuffer *buffer,  const uint8_t newone){
 		return false;
 	}
 	buffer->buff[buffer->length] = newone;
-	buffer->length ++ ;
+	buffer->length ++;
+	return true;
 }
 bool appendApduBufferBytes(apduBuffer *buffer,const uint8_t *byte_array,int array_len){
 	if( buffer->length + array_len > APDU_MAX_LEN ){
@@ -81,10 +85,12 @@ void showApduBuffer(apduBuffer *buffer){
 	}
 	printf("\n");
 }
-void getApduArray(apduBuffer *buffer, uint8_t** apdu_array,int* length){
-	*apdu_array = ( uint8_t* ) malloc(sizeof(uint8_t) * buffer->length);
+void getApduArray(apduBuffer *buffer, uint8_t* apdu_array,int* length){
+	//*apdu_array = ( uint8_t* ) malloc(sizeof(uint8_t) * buffer->length);
  	*length = buffer->length;
 	for( int i = 0; i< buffer->length; i++ ){
- 		(*apdu_array)[i] = buffer->buff[i];
+ 		(apdu_array)[i] = buffer->buff[i];
  	}
 }
+
+#endif
