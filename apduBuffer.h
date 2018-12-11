@@ -9,12 +9,12 @@
 #define APDU_MAX_LEN 256
  
 typedef  struct apdubufferStruct{
-	uint8_t *buff;	
+	uint8_t buff[APDU_MAX_LEN];	
 	int length;
 } apduBuffer;
 
 void initApduBuffer(apduBuffer *buffer){
-	buffer->buff  = (uint8_t *)malloc(sizeof(uint8_t)*APDU_MAX_LEN);
+	//buffer->buff  = (uint8_t *)malloc(sizeof(uint8_t)*APDU_MAX_LEN);
 	buffer->length = 0;
 }
 // insert a byte into a buffer at pos position
@@ -85,6 +85,7 @@ void showApduBuffer(apduBuffer *buffer){
 	}
 	printf("\n");
 }
+//把buffer中的数据　拷贝到apdu_array中，并且给出length
 void getApduArray(apduBuffer *buffer, uint8_t* apdu_array,int* length){
 	//*apdu_array = ( uint8_t* ) malloc(sizeof(uint8_t) * buffer->length);
  	*length = buffer->length;

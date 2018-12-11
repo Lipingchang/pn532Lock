@@ -4,7 +4,7 @@
 int main(){
 	//printf("%d,%d,%d\n", sizeof(uint8_t),sizeof(char),sizeof(int)); <uint8_t> is 8bytes equals <char>'s size  
 	initMaster();
-	addMaster(2	,"lipc","AABBCC");
+	addMaster(1,"lipc","AABBCC");
 
 	showMasters();
 	checkMasterPwd(1,"AACC");

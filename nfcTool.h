@@ -1,9 +1,11 @@
 #ifndef _NFC_TOOL_H_
 #define _NFC_TOOL_H_ 1
 
+#include "ERRORCode.h"
+
 char const *mynfc_device_name = "pn532_uart:/dev/ttyUSB0";
 uint8_t const *Lock_ID = ( uint8_t* ) "\x88\x01\x02\x03\x04\x05\x06\x88"; // 8 byte Lock ID
-
+const int Lock_ID_Len = 8;
 const uint8_t start_auth_head =  			0x90;
 const uint8_t Access_Request_Head =         0x02;
 const uint8_t Lock_ID_Head =                0x01;
@@ -22,21 +24,30 @@ const uint8_t  AID_Head  =                 0x00;
 const uint8_t Master_Mode = 0x01;
 const uint8_t Guest_Mode = 0x02;
 
-int CardTransmit(nfc_device *pnd,const uint8_t *sendapdu,const size_t sendapdulen,  uint8_t *recapdu,const size_t *recapdulen){
+// 返回接受到的长度
+int CardTransmit(nfc_device *pnd,
+	const uint8_t *sendapdu, const int sendapdulen,  
+	uint8_t 	  *recapdu,  int 	   maxreceivelen)
+{
 	int res = 0,timeout=1000; 
-	size_t szPos;
+	size_t szPos,slen = sendapdulen,rlen = maxreceivelen;
 	printf("=> ");
 	for( szPos = 0; szPos<sendapdulen; szPos++ ){		// capdu -> send data
 		printf("%02x ", sendapdu[szPos]);	
 	}
 	printf("\n");
-	res = nfc_initiator_transceive_bytes(pnd,sendapdu,sendapdulen,recapdu,*recapdulen,timeout);
+
+	res = nfc_initiator_transceive_bytes(pnd,
+		sendapdu, slen,
+		recapdu,  rlen,
+		timeout);
+
 	if( res == NFC_EOVFLOW){
 		printf("receive data is too large, need a larger recapdu[] array..\n");
-		return -1;
+		exit(RECEIVE_OVERFLOW);
 	}else if( res <= 0 ){ // the byte count of received apdu data
-		printf("send fail.error code:%d\n",res);
-		return -1;
+		printf("send fail error code:%d\n",res);
+		exit(SEND_APDU_FAIL);
 	}else{
 		printf("<= ");
 		for( szPos=0; szPos<res; szPos++ ){
