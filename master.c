@@ -56,6 +56,9 @@ bool addMaster(uint8_t id,const char name[],const char pwd[]){
 	showMaster(masterSum++);
 	return true;
 }
+int generateID(){
+	return masterSum+1;
+}
 void showMasters(){
 	printf("show masters:\n");
 	for( int i = 0; i<masterSum; i++){
@@ -75,4 +78,7 @@ void showMaster(int i){
 		masterList[i].masterID,
 		masterList[i].masterPwd
 	);
+}
+bool canAcceptMaster(){
+	return MAX_MASTER>=(masterSum+1);
 }

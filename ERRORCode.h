@@ -4,6 +4,6 @@
 #define RECEIVE_OVERFLOW 1
 #define SEND_APDU_FAIL 2
 #define ABNOREMAL_ROUTINE 3
-
-
+#define DATA_STRUCT_ERROR 4
+#define NOT_IMPLEMENT_ERROR 5
 #endif

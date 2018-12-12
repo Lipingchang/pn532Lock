@@ -23,6 +23,9 @@ const uint8_t  AID_Head  =                 0x00;
 
 const uint8_t Master_Mode = 0x01;
 const uint8_t Guest_Mode = 0x02;
+const uint8_t Start_Relate_Head = 0x78;
+const uint8_t Relate_Accept_Head = 0x79;
+const uint8_t Relate_Result_Head = 0x80;
 
 // 返回接受到的长度
 int CardTransmit(nfc_device *pnd,
@@ -109,6 +112,14 @@ void initDevice(nfc_context **context_addr,nfc_device **pnd_addr,nfc_target *nt_
 	}
 
 	printf("device %s opened and init to initiator successful!\n", mynfc_device_name);
+
+}
+void ByebyeDevice(nfc_context **context_addr,nfc_device **pnd_addr ){
+	nfc_close(*pnd_addr);
+	nfc_exit(*context_addr);
+	//exit(EXIT_SUCCESS);
+}
+void waitPhoneCome(nfc_device **pnd_addr, nfc_target *nt_addr){	
 	const nfc_modulation nmMifare = {
 		.nmt = NMT_ISO14443A,
 		.nbr = NBR_106
@@ -119,11 +130,7 @@ void initDevice(nfc_context **context_addr,nfc_device **pnd_addr,nfc_target *nt_
 	while( 	nfc_initiator_select_passive_target(*pnd_addr,nmMifare,NULL,0,nt_addr) != 1 );
 	printf("Target detected: uid:");
 	print_hex((*nt_addr).nti.nai.abtUid,(*nt_addr).nti.nai.szUidLen);
-}
-void ByebyeDevice(nfc_context **context_addr,nfc_device **pnd_addr ){
-	nfc_close(*pnd_addr);
-	nfc_exit(*context_addr);
-	//exit(EXIT_SUCCESS);
+
 }
 int getPwdFromAccessRequest(uint8_t* input,int input_len,char *pwd ){
 	// pwd must big enough to contain the pwd!!

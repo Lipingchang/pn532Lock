@@ -9,6 +9,7 @@
 #include "ERRORCode.h"
 
 void startAuth();
+void startRelate(uint8_t rapdu[],int len);
 
 
 #define MAX_RAPDU_LEN 255 
@@ -21,21 +22,29 @@ nfc_device *pnd;
 nfc_target nt;
 nfc_context *context;
 
+
+#define ACCEPT_RELATE_BTN 1 
+
 int main(int argc, const char *argv[] ){
 	initDevice(&context,&pnd,&nt);
+	initMaster();
+	while(1){
+		waitPhoneCome(&pnd,&nt);
 
-	// Send AID to choose an Android Service!
-	sendApduLen = 12;
-	memcpy(sapdu,"\x00\xA4\x04\x00\x07\x00\x66\x88\x66\x88\x66\x88",sendApduLen);
-	receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
+		// Send AID to choose an Android Service!
+		sendApduLen = 12;
+		memcpy(sapdu,"\x00\xA4\x04\x00\x07\x00\x66\x88\x66\x88\x66\x88",sendApduLen);
+		receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
 
-	// dispatch return data:
-	if( rapdu[0] == start_auth_head ){
-		startAuth();
-	}else if( rapdu[0] == ByeBye_Head ){
-		printf("device say bye byte ~\n");
+		// dispatch return data:
+		if( rapdu[0] == start_auth_head ){
+			startAuth();
+		}else if( rapdu[0] == ByeBye_Head ){
+			printf("device say bye byte ~\n");
+		}else if( rapdu[0] == Start_Relate_Head ){
+			startRelate( rapdu, receiveApduLen );
+		}
 	}
-
 
 	ByebyeDevice(&context,&pnd);
 	exit(EXIT_SUCCESS);
@@ -77,6 +86,52 @@ void startAuth(){
 	}else{
 		exit(ABNOREMAL_ROUTINE);
 	}
+}
+// 
+void startRelate(uint8_t rapdu[],int len){
 
+	uint8_t pwdlen = rapdu[1];
+	char pwd[100]; char name[100];
+	if( pwdlen+2 < len){
+		uint8_t i;
+		for(  i = 0; i<pwdlen; i++ ){
+			pwd[i] = rapdu[i+2];
+		}
+		pwd[i] = '\0';
+		for(  i = 0; i<len-pwdlen-2 ; i++ ){
+			name[i] = rapdu[i+pwdlen+2];
+		}
+		name[i] = '\0';
+		printf("\trelate:pwd:<%s>,name:<%s>\n", pwd,name);
+	}else{
+		printf("Relate data struct error\n");
+		exit( DATA_STRUCT_ERROR );
+	}
+
+	apduBuffer reply;
+	initApduBuffer(&reply);
+
+	if ( ACCEPT_RELATE_BTN ){
+		if ( canAcceptMaster() ){
+			uint8_t id = (uint8_t)generateID();
+			if( addMaster(id,name,pwd) ){
+				appendApduBufferByte(&reply,Relate_Accept_Head);
+				appendApduBufferByte(&reply,id);
+				appendApduBufferBytes(&reply,Lock_ID,Lock_ID_Len);
+				getApduArray(&reply,sapdu,&sendApduLen);
+				receiveApduLen = CardTransmit(pnd,
+					sapdu,sendApduLen,
+					rapdu,MAX_RAPDU_LEN);
+
+			}else{
+				exit(NOT_IMPLEMENT_ERROR);
+			}
+		}else{
+			exit(NOT_IMPLEMENT_ERROR);
+		}
+	}else{
+		exit(NOT_IMPLEMENT_ERROR);
+	}
+	
 }
 
