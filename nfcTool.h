@@ -8,12 +8,19 @@ uint8_t const *Lock_ID = ( uint8_t* ) "\x88\x01\x02\x03\x04\x05\x06\x88"; // 8 b
 const int Lock_ID_Len = 8;
 const uint8_t start_auth_head =  			0x90;
 const uint8_t Access_Request_Head =         0x02;
+	const uint8_t Welcome_Master = 0x01;
+	const uint8_t Welcome_Guest =  0x02;
+	const uint8_t Deny_Access =    0x03;
+	
 const uint8_t Lock_ID_Head =                0x01;
 const uint8_t Access_Reply_Head =           0x03;
 const uint8_t Get_Recent_Record_Head =       0x04;
-const uint8_t Send_Recent_Access_Record =    0x05;
-const uint8_t Send_Recent_Refuse_Record =    0x06;
-const uint8_t Send_Recent_Key_Access_Record = 0x07;
+
+const uint8_t Send_Recent_Record =    0x15;	
+	const uint8_t Send_Recent_Access_Record =    0x05;
+	const uint8_t Send_Recent_Refuse_Record =    0x06;
+	const uint8_t Send_Recent_Key_Access_Record = 0x07;
+	
 const uint8_t ByeBye_Head =                	0x08;
 
 const uint8_t Start_Auth_Head =             0x90;
@@ -139,7 +146,16 @@ int getPwdFromAccessRequest(uint8_t* input,int input_len,char *pwd ){
 		pwd[count++] = input[i];
 	}
 	pwd[count] = '\0';
-	printf("find pwd:<%s> len:<%d>\n", pwd,count);
+	printf("\tAccess Request:find pwd:<%s> len:<%d>\n", pwd,count);
+	return count;
+}
+int getPwdFromLogRequest(uint8_t* input,int input_len,char *pwd){
+	int count = 0;
+	for( int i = 2; i<input_len; i++ ){
+		pwd[count++] = input[i];
+	}
+	pwd[count] = '\0';
+	printf("\tLog Request:find pwd:<%s> len:<%d>\n",pwd,count);
 	return count;
 }
 

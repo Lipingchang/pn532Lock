@@ -35,6 +35,7 @@ deque<Log> logQueue;
 
 
 void saveLogtoFile();
+int getALogByte(Log gg, uint8_t* outdata);
 
 void addLog(const char* userName,int id,userType user_t,passType pass_t){
 	if( logQueue.size()+1 > MAX_LOG_SUM){
@@ -110,11 +111,34 @@ void loadLogFromFile(){
 	}
 	fclose(fp);
 }
-// int main(){
-// 	loadLogFromFile();
-// 	addLog("user2",1,Master_e,Pass_e);
-
-// 	printf("%d\n", logQueue.size());
-// 	showRecentLog();
-// 	saveLogtoFile();
-// }
+int getRecentLogByte(uint8_t* outdata,int maxlen){   // return outdata byte count 
+	uint8_t buffer[100];int total=0;
+	for( int i = 1; i<=LASTEST_LOG_SUM && (logQueue.size()-i>=0) ; i++ ){
+		int ll = getALogByte(logQueue[ logQueue.size() -i ],buffer);
+		if( total + ll >=maxlen){
+			break;
+		}
+		memcpy(&outdata[total],buffer,ll);
+		total += ll;
+	}
+	return total;
+}
+int getALogByte(Log gg, uint8_t* outdata){ 
+/*
+	|namelength:1byte|userName....|userType:4bit,passType:4bit|userID:1byte|rawtime:8byte|
+	Accroding to ProcessOn..
+*/
+	outdata[0] = 0xff & strlen(gg.userName);
+	strcpy((char*)&outdata[1],gg.userName);
+	int p = 1 + outdata[0];
+	outdata[p] = 0;
+	outdata[p] |= ( (0xff & gg.user_t) << 4);
+	outdata[p] |= (0x0f & gg.pass_t);
+	p++;
+	outdata[p++] = 0xff & gg.userID;
+	memcpy(&outdata[p],(uint8_t*)&gg.rawtime,8);
+	// (*(int*)(&outdata[p])) = (int )( 0x00 & gg.rawtime);
+	// int k = -1;
+	p+=8;
+	return p;
+}

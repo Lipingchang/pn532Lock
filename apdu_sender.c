@@ -11,6 +11,8 @@
 
 void startAuth();
 void startRelate(uint8_t rapdu[],int len);
+void transmitLog(uint8_t head);
+void transmitLog(uint8_t* rapdu,int len);
 
 
 #define MAX_RAPDU_LEN 255 
@@ -25,7 +27,9 @@ nfc_context *context;
 
 
 #define ACCEPT_RELATE_BTN 1 
-
+/*
+只处理　可以处理的，不识别的都不作　回应
+*/
 int main(int argc, const char *argv[] ){
 	initDevice(&context,&pnd,&nt);
 	initMaster();
@@ -66,7 +70,7 @@ void startAuth(){
 	getApduArray(&reply,sapdu,&sendApduLen);
 	receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
 	
-	// check    the password which need to be matched with the Lock_ID;
+	// check the password which need to be matched with the Lock_ID;
 	if( rapdu[0] == Access_Request_Head ){
 		uint8_t Mode = rapdu[1];
 		uint8_t MasterID = rapdu[2];
@@ -76,16 +80,27 @@ void startAuth(){
 			char pwd[100];
 			getPwdFromAccessRequest(rapdu,receiveApduLen,pwd);
 			if( checkMasterPwd(MasterID,pwd) ){
-				// send something back ..
+				//返回成功的 accessReply
+				sapdu[0] = Access_Reply_Head;
+				sapdu[1] = Welcome_Master;
+				sendApduLen = 2;
+				receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
+
 				Master data;
 				getMasterByID(MasterID,&data);
 				addLog((char*)data.masterName,MasterID,Master_e,Pass_e);
-			}else{
-				// TODO not a master!
+				
+				if( receiveApduLen>0 ){
+					if( rapdu[0] != ByeBye_Head ){ //　不byebye的话，就检查要不要传输　日志
+						transmitLog(rapdu,receiveApduLen);
+					}
+				}
+
 			}
 
 		}else if( Mode == Guest_Mode ){
 			printf("user is guest\n");
+			// TODO 
 			exit(NOT_IMPLEMENT_ERROR);
 
 		}else{
@@ -94,10 +109,11 @@ void startAuth(){
 		}
 
 	}else{
-		exit(ABNOREMAL_ROUTINE);
+		// exit(ABNOREMAL_ROUTINE);
+		// TODO 要日志吗？
 	}
 }
-// 
+// TODO　要修正分支结构
 void startRelate(uint8_t rapdu[],int len){
 
 	uint8_t pwdlen = rapdu[1];
@@ -141,7 +157,21 @@ void startRelate(uint8_t rapdu[],int len){
 		}
 	}else{
 		exit(NOT_IMPLEMENT_ERROR);
+	}	
+}
+void transmitLog(uint8_t* rapdu,int len){
+	uint8_t head = rapdu[0];
+	int MasterID = rapdu[1];
+	if( head == Get_Recent_Record_Head ){
+		char pwd[100];
+		getPwdFromLogRequest(rapdu,len,pwd);
+		if( checkMasterPwd(MasterID,pwd) ){
+			sapdu[0] = Send_Recent_Record;
+			sendApduLen = getRecentLogByte(&sapdu[1],MAX_RAPDU_LEN-1);
+			receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
+			// TODO 发完ｌｏｇ之后？
+		}
+
 	}
-	
 }
 
