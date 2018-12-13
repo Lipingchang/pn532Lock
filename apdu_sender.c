@@ -7,6 +7,7 @@
 #include "apduBuffer.h"
 #include "master.h" 
 #include "ERRORCode.h"
+#include "log.h"
 
 void startAuth();
 void startRelate(uint8_t rapdu[],int len);
@@ -29,6 +30,8 @@ int main(int argc, const char *argv[] ){
 	initDevice(&context,&pnd,&nt);
 	initMaster();
 	loadFromFile();
+	loadLogFromFile();
+	showRecentLog();
 	
 	while(1){
 		waitPhoneCome(&pnd,&nt);
@@ -74,15 +77,20 @@ void startAuth(){
 			getPwdFromAccessRequest(rapdu,receiveApduLen,pwd);
 			if( checkMasterPwd(MasterID,pwd) ){
 				// send something back ..
-				
+				Master data;
+				getMasterByID(MasterID,&data);
+				addLog((char*)data.masterName,MasterID,Master_e,Pass_e);
 			}else{
 				// TODO not a master!
 			}
 
 		}else if( Mode == Guest_Mode ){
 			printf("user is guest\n");
+			exit(NOT_IMPLEMENT_ERROR);
+
 		}else{
 			printf("user is undefine,<Mode:%d>\n",Mode);
+			addLog("unknow",0,Unknow_e,Reject_e);
 		}
 
 	}else{

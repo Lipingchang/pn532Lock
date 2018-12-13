@@ -33,6 +33,9 @@ typedef struct logStruct
 } Log;
 deque<Log> logQueue;
 
+
+void saveLogtoFile();
+
 void addLog(const char* userName,int id,userType user_t,passType pass_t){
 	if( logQueue.size()+1 > MAX_LOG_SUM){
 		logQueue.front();
@@ -47,6 +50,7 @@ void addLog(const char* userName,int id,userType user_t,passType pass_t){
 	logQueue.push_back( *newlog );
 
 	free(newlog);
+	saveLogtoFile();
 }
 const char* getUserType(userType t){
 	if( t == Guest_e )
@@ -91,6 +95,7 @@ void saveLogtoFile(){
 	for( int i = 0; i<logQueue.size(); i++ ){
 		int k = fwrite((void*)&logQueue[i],sizeof(logQueue[i]),1,fp);
 	}
+	fclose(fp);
 }
 void loadLogFromFile(){
 	while ( !logQueue.empty() ){
@@ -103,6 +108,7 @@ void loadLogFromFile(){
 	while( (readlen = fread((void*)&buffer,sizeof(Log),1,fp)) != 0 ){
 		logQueue.push_back(buffer);
 	}
+	fclose(fp);
 }
 // int main(){
 // 	loadLogFromFile();

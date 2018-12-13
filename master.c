@@ -23,7 +23,7 @@ void showMaster(int i);
 void showMasters();
 bool checkMasterPwd(int id,const char inputpwd[]);
 void save2File();
-
+Master getMasterByIndex(int i);
 
 void initMaster(){
 
@@ -71,15 +71,12 @@ void showMasters(){
 	printf("\n");
 }
 void showMaster(int i){
-	if( masterSum <= i ){
-		printf("master <%d> not found, masterSum is %d \n", i,masterSum);
-		return;
-	}
+	Master master = getMasterByIndex(i);
 	printf("No.%d Name:<%s> ID:<%d> PWD:<%s>\n", 
 		i,
-		masterList[i].masterName,
-		masterList[i].masterID,
-		masterList[i].masterPwd
+		master.masterName,
+		master.masterID,
+		master.masterPwd
 	);
 }
 bool canAcceptMaster(){
@@ -121,7 +118,7 @@ void loadFromFile(){
 	fp = fopen( SAVE_FILE_NAME , "r");
 	char buffer[255];
 	fscanf( fp, "%d\n", &masterSum );
-	printf("%d\n",masterSum );
+	printf("masterLoad sum:%d\n",masterSum );
 	
 	for ( int i =0; i<masterSum; i++ ){
 		size_t ll;
@@ -139,4 +136,20 @@ void loadFromFile(){
 	}
 
 
+}
+Master getMasterByIndex(int i){
+	if( masterSum <= i ){
+		printf("master <%d> not found, masterSum is %d \n", i,masterSum);
+		exit(ARRAY_OUTRANGE_ERROR);
+	}
+	return masterList[i];
+}
+bool getMasterByID(int id,Master* data){
+	for( int i = 0; i<masterSum; i++ ){
+		if( masterList[i].masterID == id ){
+			*data = masterList[i];
+			return true;
+		}
+	}
+	return false;
 }
