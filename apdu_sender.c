@@ -28,6 +28,8 @@ nfc_context *context;
 int main(int argc, const char *argv[] ){
 	initDevice(&context,&pnd,&nt);
 	initMaster();
+	loadFromFile();
+	
 	while(1){
 		waitPhoneCome(&pnd,&nt);
 

@@ -4,7 +4,9 @@
 int main(){
 	//printf("%d,%d,%d\n", sizeof(uint8_t),sizeof(char),sizeof(int)); <uint8_t> is 8bytes equals <char>'s size  
 	initMaster();
+	loadFromFile();
 	addMaster(1,"lipc","AABBCC");
+	addMaster(2,"Alipc","AABBCC");
 
 	showMasters();
 	checkMasterPwd(1,"AACC");
@@ -31,4 +33,6 @@ int main(){
 	getPwdFromAccessRequest(rapdu,rapdulen,pwd);
 	printf("%s\n", pwd);
 	checkMasterPwd(rapdu[2],pwd);
+
+	save2File();
 }

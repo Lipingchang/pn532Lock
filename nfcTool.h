@@ -50,7 +50,7 @@ int CardTransmit(nfc_device *pnd,
 		exit(RECEIVE_OVERFLOW);
 	}else if( res <= 0 ){ // the byte count of received apdu data
 		printf("send fail error code:%d\n",res);
-		exit(SEND_APDU_FAIL);
+		//exit(SEND_APDU_FAIL);
 	}else{
 		printf("<= ");
 		for( szPos=0; szPos<res; szPos++ ){
