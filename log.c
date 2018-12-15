@@ -91,11 +91,24 @@ void showRecentLog(){
 		printALog(i);
 	}
 }
+	
+	// char userName[255];
+	// userType user_t;
+	// passType pass_t;
+	// int userID;
+	// time_t rawtime;
+
+void writeLogToFile(FILE* fp,Log* alog){
+	fprintf(fp, "%s\n", alog->userName);
+	fprintf(fp, "%d　%d %d %ld\n", alog->user_t, alog->pass_t, alog->userID, alog->rawtime);
+}
 void saveLogtoFile(){
 	FILE *fp = NULL;
-	fp = fopen( LOG_FILE_NAME , "wb");
+	fp = fopen( LOG_FILE_NAME , "w+");
+	fprintf(fp, "%d\n", logQueue.size() );
 	for( int i = 0; i<logQueue.size(); i++ ){
-		int k = fwrite((void*)&logQueue[i],sizeof(logQueue[i]),1,fp);
+		//int k = fwrite((void*)&logQueue[i],sizeof(logQueue[i]),1,fp);
+		writeLogToFile(fp,&logQueue[i]);
 	}
 	fclose(fp);
 }
@@ -105,9 +118,16 @@ void loadLogFromFile(){
 	}
 
 	FILE *fp = NULL;
-	fp = fopen( LOG_FILE_NAME , "rb");
+	fp = fopen( LOG_FILE_NAME , "r");
 	Log buffer;size_t readlen;
-	while( (readlen = fread((void*)&buffer,sizeof(Log),1,fp)) != 0 ){
+	int logcount = 0;
+
+	fscanf( fp, "%d\n", &logcount );
+	for( int i =0; i<logcount; i++ ){
+		size_t ll;
+		fgets((char*)buffer.userName,255,fp);
+		buffer.userName[strlen((char*)buffer.userName)-1] = '\0';
+		fscanf(fp,"%d　%d %d %ld\n",&(buffer.user_t), &(buffer.pass_t), &(buffer.userID), &(buffer.rawtime));
 		logQueue.push_back(buffer);
 	}
 	fclose(fp);
