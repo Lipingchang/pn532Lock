@@ -100,7 +100,7 @@ void showRecentLog(){
 
 void writeLogToFile(FILE* fp,Log* alog){
 	fprintf(fp, "%s\n", alog->userName);
-	fprintf(fp, "%d　%d %d %ld\n", alog->user_t, alog->pass_t, alog->userID, alog->rawtime);
+	fprintf(fp, "%d %d %d %ld\n", alog->user_t, alog->pass_t, alog->userID, alog->rawtime);
 }
 void saveLogtoFile(){
 	FILE *fp = NULL;
@@ -127,7 +127,7 @@ void loadLogFromFile(){
 		size_t ll;
 		fgets((char*)buffer.userName,255,fp);
 		buffer.userName[strlen((char*)buffer.userName)-1] = '\0';
-		fscanf(fp,"%d　%d %d %ld\n",&(buffer.user_t), &(buffer.pass_t), &(buffer.userID), &(buffer.rawtime));
+		fscanf(fp,"%d %d %d %ld\n",&(buffer.user_t), &(buffer.pass_t), &(buffer.userID), &(buffer.rawtime));
 		logQueue.push_back(buffer);
 	}
 	fclose(fp);
