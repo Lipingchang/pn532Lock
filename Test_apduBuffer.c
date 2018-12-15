@@ -1,20 +1,17 @@
-#ifndef _APDU_BUFFER_H
-#define _APDU_BUFFER_H 1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <nfc/nfc.h>
-
+ 
 #define APDU_MAX_LEN 256
  
 typedef  struct apdubufferStruct{
-	uint8_t buff[APDU_MAX_LEN];	
+	uint8_t *buff;	
 	int length;
 } apduBuffer;
 
 void initApduBuffer(apduBuffer *buffer){
-	//buffer->buff  = (uint8_t *)malloc(sizeof(uint8_t)*APDU_MAX_LEN);
+	buffer->buff  = (uint8_t *)malloc(sizeof(uint8_t)*APDU_MAX_LEN);
 	buffer->length = 0;
 }
 // insert a byte into a buffer at pos position
@@ -56,7 +53,7 @@ bool insertApduBufferBytes( apduBuffer *buffer,const uint8_t *byte_array,int arr
 	}
 
 	*len = *len + array_len;
-	return true;
+	return false;
 }
 bool appendApduBufferByte(apduBuffer *buffer,  const uint8_t newone){
 	if( buffer->length+1 > APDU_MAX_LEN ){
@@ -64,8 +61,7 @@ bool appendApduBufferByte(apduBuffer *buffer,  const uint8_t newone){
 		return false;
 	}
 	buffer->buff[buffer->length] = newone;
-	buffer->length ++;
-	return true;
+	buffer->length ++ ;
 }
 bool appendApduBufferBytes(apduBuffer *buffer,const uint8_t *byte_array,int array_len){
 	if( buffer->length + array_len > APDU_MAX_LEN ){
@@ -85,13 +81,53 @@ void showApduBuffer(apduBuffer *buffer){
 	}
 	printf("\n");
 }
-//把buffer中的数据　拷贝到apdu_array中，并且给出length
-void getApduArray(apduBuffer *buffer, uint8_t* apdu_array,int* length){
-	//*apdu_array = ( uint8_t* ) malloc(sizeof(uint8_t) * buffer->length);
+void getApduArray(apduBuffer *buffer, uint8_t** apdu_array,int* length){
+	*apdu_array = malloc(sizeof(uint8_t) * buffer->length);
  	*length = buffer->length;
 	for( int i = 0; i< buffer->length; i++ ){
- 		(apdu_array)[i] = buffer->buff[i];
+ 		(*apdu_array)[i] = buffer->buff[i];
  	}
 }
 
-#endif
+static void print_hex(const uint8_t *pbtData, const size_t szBytes)
+{
+  size_t  szPos;
+
+  for (szPos = 0; szPos < szBytes; szPos++) {
+    printf("%02x ", pbtData[szPos]);
+  }
+  printf("\n");
+}
+
+int main(){
+	apduBuffer reply;
+	initApduBuffer(&reply);
+	printf("%d\n",reply.length);
+	// insertApduBuffer(&reply,0x12,0);
+	// showApduBuffer(&reply);
+	// insertApduBuffer(&reply,0x10,1);
+	// showApduBuffer(&reply);
+	// insertApduBuffer(&reply,0x1,0);
+	// showApduBuffer(&reply);
+	// printf("%d\n",reply.length);
+
+	printf("int:%d\nuint8_t:%d\n",sizeof(int),sizeof(uint8_t));
+
+	uint8_t kk[] = { 0x11,0x12,0x13 };
+	insertApduBufferBytes(&reply,kk,3,0);
+	showApduBuffer(&reply);
+	// insertApduBufferBytes(&reply,kk,3,1);
+	// showApduBuffer(&reply);
+	// insertApduBufferBytes(&reply,kk,1,6);
+	// showApduBuffer(&reply);
+	appendApduBufferBytes(&reply,kk,3);
+	showApduBuffer(&reply);
+
+
+	// uint8_t* apdu_array;
+	// int length;
+	// getApduArray(&reply,&apdu_array,&length);
+	// print_hex(apdu_array,length);
+
+
+}
