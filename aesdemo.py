@@ -44,7 +44,14 @@ with open(inputfilename,'r') as inputf:
         #第一行　是加密数据　第二行是密码
         enc_str = lines[0].split()[0]
         key = lines[1].split()[0]
+
+        if( len(key) < 16 ):
+            key = key + '0'*(16- len(key) )
+        if( len(key) > 16 ):
+            key = key[0:16]
+
         print("enc_str<"+enc_str+">key<"+key+">")
+
         iv = "0000000000000000" #key[0:16]
         e = AESCipher(key,iv)
         try:
@@ -61,9 +68,9 @@ with open(inputfilename,'r') as inputf:
             else:
                 print("time not right")
 
-        except:
+        except BaseException as e :
             #outputf.write("")
-            print('decrypt fail')
+            print('decrypt fail {0}'.format(e))
 if passin:
     exit(1)
 else:

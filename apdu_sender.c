@@ -8,10 +8,10 @@
 #include "master.h" 
 #include "ERRORCode.h"
 #include "log.h"
+#include "PassinControl.h"
 
 void startAuth();
 void startRelate(uint8_t rapdu[],int len);
-void transmitLog(uint8_t head);
 void transmitLog(uint8_t* rapdu,int len);
 
 
@@ -89,6 +89,7 @@ void startAuth(){
 				Master data;
 				getMasterByID(MasterID,&data);
 				addLog((char*)data.masterName,MasterID,Master_e,Pass_e);
+				pass(); // 开门函数
 				
 				if( receiveApduLen>0 ){
 					if( rapdu[0] != ByeBye_Head ){ //　不byebye的话，就检查要不要传输　日志
@@ -96,12 +97,31 @@ void startAuth(){
 					}
 				}
 
+			}else{
+				addLog("unknow",0,Master_e,Reject_e);
 			}
 
 		}else if( Mode == Guest_Mode ){
-			printf("user is guest\n");
+			printf("user is guest　pwd:\n");
 			// TODO 
-			exit(NOT_IMPLEMENT_ERROR);
+			print_base64((char*)&rapdu[2],receiveApduLen-2);
+			if( checkGuestFromMaster(MasterID,&rapdu[3],receiveApduLen-3) ){
+				// 好像没啥好做的　都在上面的函数里面做掉了
+				// 发送成功通过的请求给他
+
+				sapdu[0] = Access_Reply_Head;
+				sapdu[1] = Welcome_Guest;
+				memcpy(&sapdu[2],WelCome_Word,strlen(WelCome_Word));
+				sendApduLen = 2+strlen(WelCome_Word);
+				receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
+
+
+
+			}else{
+				// 客人登录失败
+				addLog("unknow",0,Guest_e,Reject_e);
+			}
+			//exit(NOT_IMPLEMENT_ERROR);
 
 		}else{
 			printf("user is undefine,<Mode:%d>\n",Mode);
@@ -160,6 +180,7 @@ void startRelate(uint8_t rapdu[],int len){
 	}	
 }
 void transmitLog(uint8_t* rapdu,int len){
+	printf("\tloglen: %d\n", len);
 	uint8_t head = rapdu[0];
 	int MasterID = rapdu[1];
 	if( head == Get_Recent_Record_Head ){
@@ -167,7 +188,9 @@ void transmitLog(uint8_t* rapdu,int len){
 		getPwdFromLogRequest(rapdu,len,pwd);
 		if( checkMasterPwd(MasterID,pwd) ){
 			sapdu[0] = Send_Recent_Record;
+			printf("\tstart getting log\n");
 			sendApduLen = getRecentLogByte(&sapdu[1],MAX_RAPDU_LEN-1);
+			printf("\tstart sending log\n");
 			receiveApduLen = CardTransmit(pnd,sapdu,sendApduLen,rapdu,MAX_RAPDU_LEN);
 			// TODO 发完ｌｏｇ之后？
 		}

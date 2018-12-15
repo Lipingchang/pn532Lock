@@ -2,8 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <nfc/nfc.h>
+#include <stdlib.h>
 
 #include "nfcTool.h"
+#include "PassinControl.h"
+#include "log.h"
+
 
 typedef  struct masterStruct{
 	uint8_t masterID;	
@@ -16,6 +20,8 @@ typedef  struct masterStruct{
 Master masterList[MAX_MASTER];
 int masterSum = 0;
 const char SAVE_FILE_NAME[] = "master.txt";
+const char AES_en_MID_FILE[] = "enAES.txt";
+const char AES_de_MID_FILE[] = "deAES.txt";
 
 void initMaster();
 bool addMaster(uint8_t,const char[],const char[]);
@@ -29,19 +35,20 @@ void initMaster(){
 
 }
 bool checkMasterPwd(int id,const char inputpwd[]){
+	printf("\tchecking masterID:<%d>\n",id );
 	for( int i =0 ;i <masterSum ; i++ ){
 		Master* p = &masterList[i];
 		if( p->masterID == id){
 			if( strcmp(inputpwd,(char*)p->masterPwd ) == 0){
-				printf("master <%s> pwd check succes:%s\n", p->masterName,inputpwd);
+				printf("\tmaster <%s> pwd check succes:%s\n", p->masterName,inputpwd);
 				return true;
 			}else{
-				printf("master <%s> pwd check fail:%s\n", p->masterName,inputpwd );
+				printf("\tmaster <%s> pwd check fail:%s\n", p->masterName,inputpwd );
 				return false;
 			}
 		}
 	}
-	printf("master ID:<%d> not found\n", id);
+	printf("\tmaster ID:<%d> not found\n", id);
 	return false;
 }
 bool addMaster(uint8_t id,const char name[],const char pwd[]){
@@ -148,6 +155,33 @@ bool getMasterByID(int id,Master* data){
 	for( int i = 0; i<masterSum; i++ ){
 		if( masterList[i].masterID == id ){
 			*data = masterList[i];
+			return true;
+		}
+	}
+	return false;
+}
+bool checkGuestFromMaster(int id,uint8_t* pwd,int len){
+	Master m;
+	if( getMasterByID(id,&m) ){
+		FILE *fp = NULL;
+		fp = fopen( AES_en_MID_FILE ,"w+" );
+		for( int i = 0; i < len; i++ ){
+			fprintf(fp, "%c", pwd[i]);
+		}
+
+		fprintf(fp, "\n%s", m.masterPwd);
+		fclose(fp);
+		int  re = system("python3 aesdemo.py");
+		if( re == 256 ){
+			printf("guest pass succ\n");
+			fp = fopen( AES_de_MID_FILE,"r");
+			char guestname[100];
+			fgets(guestname,100,fp);
+			addLog(guestname,id,Guest_e,Pass_e);
+
+			//调用开门
+			pass();
+
 			return true;
 		}
 	}

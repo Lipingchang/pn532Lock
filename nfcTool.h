@@ -4,7 +4,9 @@
 #include "ERRORCode.h"
 
 char const *mynfc_device_name = "pn532_uart:/dev/ttyUSB0";
-uint8_t const *Lock_ID = ( uint8_t* ) "\x88\x01\x02\x03\x04\x05\x06\x88"; // 8 byte Lock ID
+// uint8_t const *Lock_ID = ( uint8_t* ) "\x88\x01\x02\x03\x04\x05\x06\x88"; // 8 byte Lock ID
+uint8_t const *Lock_ID = ( uint8_t* ) "\x88\x11\x02\x03\x04\x05\x06\x88"; // 8 byte Lock ID
+char WelCome_Word[] = "welcome to xxx";
 const int Lock_ID_Len = 8;
 const uint8_t start_auth_head =  			0x90;
 const uint8_t Access_Request_Head =         0x02;
@@ -94,6 +96,12 @@ void print_hex(char *data){
 	while(*p != '\0'){
 		printf("%02x ",*p);
 		p++;
+	}
+	printf("\n");
+}
+void print_base64(char* data,int len){
+	for( int i = 0; i < len; i++ ){
+		printf("%c", data[i]);
 	}
 	printf("\n");
 }

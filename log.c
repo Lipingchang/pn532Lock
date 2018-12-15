@@ -7,6 +7,7 @@
 #include "nfcTool.h"
 
 #include <deque>
+
 using namespace std;
 
 //　总共存储的日志条数
@@ -113,11 +114,13 @@ void loadLogFromFile(){
 }
 int getRecentLogByte(uint8_t* outdata,int maxlen){   // return outdata byte count 
 	uint8_t buffer[100];int total=0;
-	for( int i = 1; i<=LASTEST_LOG_SUM && (logQueue.size()-i>=0) ; i++ ){
-		int ll = getALogByte(logQueue[ logQueue.size() -i ],buffer);
+	for( int i = logQueue.size()-1; i>=0 && logQueue.size()-i<=LASTEST_LOG_SUM; i-- ){
+		printf("%d>>>:", i );
+		int ll = getALogByte(logQueue[ i ],buffer);
 		if( total + ll >=maxlen){
 			break;
 		}
+		printf("\t\tmove <%d>data from buf to data\n",ll);
 		memcpy(&outdata[total],buffer,ll);
 		total += ll;
 	}
@@ -128,17 +131,21 @@ int getALogByte(Log gg, uint8_t* outdata){
 	|namelength:1byte|userName....|userType:4bit,passType:4bit|userID:1byte|rawtime:8byte|
 	Accroding to ProcessOn..
 */
+	printf("\t  setting username len\n");
 	outdata[0] = 0xff & strlen(gg.userName);
+	printf("\t\tcopying username, len:%d\n",outdata[0]);
 	strcpy((char*)&outdata[1],gg.userName);
 	int p = 1 + outdata[0];
+	printf("\t\tsetting bits p:<%d>\n",p);
 	outdata[p] = 0;
 	outdata[p] |= ( (0xff & gg.user_t) << 4);
 	outdata[p] |= (0x0f & gg.pass_t);
 	p++;
+	printf("\t\tsetting userid\n");
 	outdata[p++] = 0xff & gg.userID;
+	printf("\t\tcopying rawtime\n");
 	memcpy(&outdata[p],(uint8_t*)&gg.rawtime,8);
-	// (*(int*)(&outdata[p])) = (int )( 0x00 & gg.rawtime);
-	// int k = -1;
 	p+=8;
+	printf("\t\treturning p:<%d>\n", p);
 	return p;
 }
