@@ -14,7 +14,7 @@ using namespace std;
 #define MAX_LOG_SUM 100
 // 输出　最近日志的条数
 #define LASTEST_LOG_SUM 10
-const char* LOG_FILE_NAME = "logfile.txt";
+const char* LOG_FILE_NAME = "/home/pi/Desktop/nfc_code/pn532Lock/logfile.txt";
 enum userType{
 	Master_e = 1,
 	Guest_e = 2,
@@ -153,6 +153,7 @@ int getALogByte(Log gg, uint8_t* outdata){
 */
 	printf("\t  setting username len\n");
 	outdata[0] = 0xff & strlen(gg.userName);
+	printf("usernamelen:<<%x",outdata[0]);
 	printf("\t\tcopying username, len:%d\n",outdata[0]);
 	strcpy((char*)&outdata[1],gg.userName);
 	int p = 1 + outdata[0];
@@ -161,11 +162,18 @@ int getALogByte(Log gg, uint8_t* outdata){
 	outdata[p] |= ( (0xff & gg.user_t) << 4);
 	outdata[p] |= (0x0f & gg.pass_t);
 	p++;
-	printf("\t\tsetting userid\n");
+	printf("\t\tsetting userid\n>>p:%d  ",p);
 	outdata[p++] = 0xff & gg.userID;
-	printf("\t\tcopying rawtime\n");
-	memcpy(&outdata[p],(uint8_t*)&gg.rawtime,8);
+	printf("\t\tcopying rawtime\n >>>userID: %x %d,%d",outdata[p-1],gg.userID,p-1);
+	print_hex(outdata,p);
+printf("%x,%x",(gg.rawtime & 0xff ),gg.rawtime);
+	memcpy(&outdata[p],(uint8_t*)&gg.rawtime ,4);
+	long k = 0;
+	memcpy(&outdata[p+4],&k,4);
+printf("fffffffffffffuck");
+	print_hex((uint8_t*)&gg.rawtime,8);
 	p+=8;
 	printf("\t\treturning p:<%d>\n", p);
+	print_hex(outdata,p);
 	return p;
 }

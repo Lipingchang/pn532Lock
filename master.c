@@ -19,9 +19,9 @@ typedef  struct masterStruct{
 
 Master masterList[MAX_MASTER];
 int masterSum = 0;
-const char SAVE_FILE_NAME[] = "master.txt";
-const char AES_en_MID_FILE[] = "enAES.txt";
-const char AES_de_MID_FILE[] = "deAES.txt";
+const char SAVE_FILE_NAME[] = "/home/pi/Desktop/nfc_code/pn532Lock/master.txt";
+const char AES_en_MID_FILE[] = "/home/pi/Desktop/nfc_code/pn532Lock/enAES.txt";
+const char AES_de_MID_FILE[] = "/home/pi/Desktop/nfc_code/pn532Lock/deAES.txt";
 
 void initMaster();
 bool addMaster(uint8_t,const char[],const char[]);
