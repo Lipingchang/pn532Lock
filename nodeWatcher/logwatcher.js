@@ -1,15 +1,26 @@
 var mqtt = require('mqtt')
 var client = mqtt.connect('mqtt://10.66.4.186');
-var logWatherID = "1";
+var logWatherID = "2";
 var myuploadTopic = 'logWather'+logWatherID;
+var myHearBeatTopic = "heartBeat"+myuploadTopic;
+
 client.on('connect',function(){
+	client.publish("all",logWatherID+" is ONLINE!")
 	client.subscribe('pn532_boardcast');
-	client.subscribe( myuploadTopic );
+	// client.subscribe( myuploadTopic );
 });
 
 client.on('message',function(topic,message) {
 	console.log('mqtt:',topic,message.toString());
 })
+setInterval(function (){
+	client.publish(myHearBeatTopic,JSON.stringify(
+		{
+			"db":myHearBeatTopic,
+			"beat": new Date().getTime()+"" 
+		}
+		))
+},5000);
 
 const fs = require('fs');
 var fileName = '../logfile.txt'
@@ -37,7 +48,10 @@ fs.watch(fileName,
 				if( sendData.logtime.getTime() != lastfileTimeStamp.getTime() ){
 					console.log( sendData );
 					lastfileTimeStamp = sendData.logtime;
-					client.publish(myuploadTopic,JSON.stringify(sendData) );
+					client.publish( 
+						myuploadTopic,
+						JSON.stringify(sendData) 
+					);
 				}
 			}else{
 				console.log("文件不够长");
