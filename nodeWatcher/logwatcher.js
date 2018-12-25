@@ -1,26 +1,31 @@
 var mqtt = require('mqtt')
 var client = mqtt.connect('mqtt://10.66.4.186');
-var logWatherID = "2";
-var myuploadTopic = 'logWather'+logWatherID;
-var myHearBeatTopic = "heartBeat"+myuploadTopic;
+
+const  logWatcherID = "2";
+const  myuploadTopic = 'logWatcher'; 
+const  myHearBeatTopic = "heartBeat"; 
+const  heartBeatInterval = 5 * 1000; 				// 心跳包　间隔
 
 client.on('connect',function(){
-	client.publish("all",logWatherID+" is ONLINE!")
-	client.subscribe('pn532_boardcast');
-	// client.subscribe( myuploadTopic );
+	client.publish("online suqare",logWatcherID+" is ONLINE!") // 上线广播
+	client.subscribe('pn532_boardcast');					// 命令监听频道
+
+	setInterval(function (){								// 心跳包频道
+		client.publish(
+			myHearBeatTopic,
+			JSON.stringify({
+					"watcherID":logWatcherID
+				}
+			)
+		)},
+		heartBeatInterval
+	);
 });
 
 client.on('message',function(topic,message) {
 	console.log('mqtt:',topic,message.toString());
 })
-setInterval(function (){
-	client.publish(myHearBeatTopic,JSON.stringify(
-		{
-			"db":myHearBeatTopic,
-			"beat": new Date().getTime()+"" 
-		}
-		))
-},5000);
+
 
 const fs = require('fs');
 var fileName = '../logfile.txt'
@@ -28,7 +33,9 @@ var fileName = '../logfile.txt'
 let passType = ["","通过","拒绝"];
 let userType = ["","主人","客人","未知"]; 
 
-fs.watch(fileName,
+// 监视文件：
+fs.watch(
+	fileName,
 	(function () {
 		let lastfileTimeStamp= new Date();
 		return function (argument) {
@@ -40,11 +47,14 @@ fs.watch(fileName,
 			if( dataLen > 2 ){
 				let k = data[dataLen-2].split(" ");
 				let sendData = {};
+				sendData["watcherID"] = logWatcherID;
+
 				sendData.username = data[dataLen-3];
 				sendData.user_t = userType[parseInt(k[0])];
 				sendData.pass_t = passType[parseInt(k[1])]; 
 				sendData.userID = parseInt(k[2]); 
 				sendData.logtime = new Date(parseInt(k[3])*1000);
+
 				if( sendData.logtime.getTime() != lastfileTimeStamp.getTime() ){
 					console.log( sendData );
 					lastfileTimeStamp = sendData.logtime;
